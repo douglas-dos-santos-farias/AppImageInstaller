@@ -7,9 +7,9 @@
         x:Class="AppImageInstaller.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="1280"
-        Height="860"
+        Height="900"
         MinWidth="1024"
-        MinHeight="760"
+        MinHeight="768"
         CanResize="False"
         Title="AppImage Installer">
     <Grid>
@@ -61,15 +61,19 @@
             </Border>
 
             <Border Classes="card accent" Grid.Row="1" Margin="0,20,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Classes="h2" Text="Install" />
-                    <TextBlock Classes="muted" Text="After selecting app, icon and category, run installation." />
-                    <Button Classes="primary"
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+                    <StackPanel Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Classes="h2" Text="Install" />
+                        <TextBlock Classes="muted" Text="After selecting app, icon and category, run installation." />
+                        <ProgressBar Width="320" IsIndeterminate="True" IsVisible="{Binding IsInstalling}" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Classes="primary"
+                            VerticalAlignment="Center"
                             Content="Install and create desktop entry"
                             Command="{Binding InstallCommand}"
                             IsEnabled="{Binding CanInstall}" />
-                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsInstalling}" />
-                </StackPanel>
+                </Grid>
             </Border>
 
                     <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="20">
