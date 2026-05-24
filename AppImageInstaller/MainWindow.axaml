@@ -342,7 +342,7 @@
                                                           VerticalAlignment="Top">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8" Margin="0,0,0,10">
+                                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8" Margin="0,10,0,10">
                                                             <TextBlock Text="Key" VerticalAlignment="Center" />
                                                             <TextBox Grid.Column="1"
                                                                      Text="{Binding Key}"
