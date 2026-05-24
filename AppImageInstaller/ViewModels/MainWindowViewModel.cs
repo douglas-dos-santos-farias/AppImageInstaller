@@ -19,14 +19,17 @@ public sealed class MainWindowViewModel : ViewModelBase
     private string displayName = string.Empty;
     private string selectedCategory = "Utility";
     private string selectedThemeKey = "Light";
-    private string customFieldKey = string.Empty;
-    private string customFieldValue = string.Empty;
     private string appImageError = string.Empty;
     private string iconError = string.Empty;
     private string displayNameError = string.Empty;
     private string categoryError = string.Empty;
     private string installLocationError = string.Empty;
     private string customFieldError = string.Empty;
+    private string? standardExecOverride;
+    private string? standardIconOverride;
+    private string standardTerminalOverride = "false";
+    private string standardTypeOverride = "Application";
+    private string standardVersionOverride = "1.0";
     private string installLocation = DefaultInstallLocation;
     private bool isResultModalVisible;
     private bool isAdvancedSettingsModalVisible;
@@ -59,7 +62,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             "System",
             "Utility"
         };
-        CustomFields = new ObservableCollection<DesktopCustomField>();
+        CustomFields = new ObservableCollection<DesktopCustomFieldInput>();
 
         InitializeInstallLocation();
 
@@ -104,6 +107,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (SetProperty(ref selectedAppImagePath, value))
             {
                 RaisePropertyChanged(nameof(AppImageFileName));
+                RaisePropertyChanged(nameof(StandardExecOverride));
                 RaisePropertyChanged(nameof(CanInstall));
             }
         }
@@ -117,6 +121,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (SetProperty(ref selectedIconPath, value))
             {
                 RaisePropertyChanged(nameof(IconFileName));
+                RaisePropertyChanged(nameof(StandardIconOverride));
                 RaisePropertyChanged(nameof(CanInstall));
             }
         }
@@ -129,6 +134,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             if (SetProperty(ref displayName, value))
             {
+                RaisePropertyChanged(nameof(StandardNameOverride));
                 RaisePropertyChanged(nameof(CanInstall));
             }
         }
@@ -141,6 +147,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         {
             if (SetProperty(ref selectedCategory, value))
             {
+                RaisePropertyChanged(nameof(StandardCategoriesOverride));
                 RaisePropertyChanged(nameof(CanInstall));
             }
         }
@@ -158,31 +165,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public ObservableCollection<DesktopCustomField> CustomFields { get; }
-
-    public string CustomFieldKey
-    {
-        get => customFieldKey;
-        set
-        {
-            if (SetProperty(ref customFieldKey, value))
-            {
-                ClearCustomFieldError();
-            }
-        }
-    }
-
-    public string CustomFieldValue
-    {
-        get => customFieldValue;
-        set
-        {
-            if (SetProperty(ref customFieldValue, value))
-            {
-                ClearCustomFieldError();
-            }
-        }
-    }
+    public ObservableCollection<DesktopCustomFieldInput> CustomFields { get; }
 
     public string ThemeGlyph => selectedThemeKey == "Dark" ? "☾" : "☀";
 
@@ -192,6 +175,48 @@ public sealed class MainWindowViewModel : ViewModelBase
         "Dark" => "Dark mode",
         _ => "Light mode"
     };
+
+    public string StandardNameOverride
+    {
+        get => DisplayName;
+        set => DisplayName = value;
+    }
+
+    public string StandardExecOverride
+    {
+        get => string.IsNullOrWhiteSpace(standardExecOverride) ? (SelectedAppImagePath ?? string.Empty) : standardExecOverride;
+        set => SetProperty(ref standardExecOverride, value);
+    }
+
+    public string StandardIconOverride
+    {
+        get => string.IsNullOrWhiteSpace(standardIconOverride) ? (SelectedIconPath ?? string.Empty) : standardIconOverride;
+        set => SetProperty(ref standardIconOverride, value);
+    }
+
+    public string StandardCategoriesOverride
+    {
+        get => SelectedCategory;
+        set => SelectedCategory = value;
+    }
+
+    public string StandardTerminalOverride
+    {
+        get => standardTerminalOverride;
+        set => SetProperty(ref standardTerminalOverride, value);
+    }
+
+    public string StandardTypeOverride
+    {
+        get => standardTypeOverride;
+        set => SetProperty(ref standardTypeOverride, value);
+    }
+
+    public string StandardVersionOverride
+    {
+        get => standardVersionOverride;
+        set => SetProperty(ref standardVersionOverride, value);
+    }
 
     public string AppImageError
     {
@@ -308,7 +333,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         private set => SetProperty(ref isAdvancedSettingsModalVisible, value);
     }
 
-    public string CustomFieldsSummary => CustomFields.Count switch
+    public string CustomFieldsSummary => this.CustomFields.Count(item => !string.IsNullOrWhiteSpace(item.Key) || !string.IsNullOrWhiteSpace(item.Value)) switch
     {
         0 => "No custom fields configured.",
         1 => "1 custom field configured.",
@@ -419,7 +444,7 @@ public sealed class MainWindowViewModel : ViewModelBase
                 InstallLocation,
                 DisplayName.Trim(),
                 SelectedCategory,
-                CustomFields.ToList()));
+                BuildEffectiveCustomFields()));
 
             await appSettingsService.SaveLastInstallDirectoryAsync(InstallLocation);
 
@@ -449,6 +474,7 @@ public sealed class MainWindowViewModel : ViewModelBase
             ? string.Empty
             : folderError;
 
+        ValidateCustomFields();
         RaisePropertyChanged(nameof(CanInstall));
         RaiseCommands();
 
@@ -456,60 +482,89 @@ public sealed class MainWindowViewModel : ViewModelBase
                string.IsNullOrEmpty(IconError) &&
                string.IsNullOrEmpty(DisplayNameError) &&
                string.IsNullOrEmpty(CategoryError) &&
-               string.IsNullOrEmpty(InstallLocationError);
+               string.IsNullOrEmpty(InstallLocationError) &&
+               string.IsNullOrEmpty(CustomFieldError);
     }
 
     private void AddCustomField()
     {
-        var key = CustomFieldKey.Trim();
-        var value = CustomFieldValue.Trim();
-
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            CustomFieldError = "Key is required.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            CustomFieldError = "Value is required.";
-            return;
-        }
-
-        if (key.Any(char.IsWhiteSpace) || key.Contains('\n') || key.Contains('\r'))
-        {
-            CustomFieldError = "Key cannot contain spaces or line breaks.";
-            return;
-        }
-
-        if (value.Contains('\n') || value.Contains('\r'))
-        {
-            CustomFieldError = "Value cannot contain line breaks.";
-            return;
-        }
-
-        CustomFields.Add(new DesktopCustomField(key, value));
-        CustomFieldKey = string.Empty;
-        CustomFieldValue = string.Empty;
-        CustomFieldError = string.Empty;
+        CustomFields.Add(new DesktopCustomFieldInput());
+        ValidateCustomFields();
         RaisePropertyChanged(nameof(CustomFieldsSummary));
+    }
+
+    private IReadOnlyList<DesktopCustomField> BuildEffectiveCustomFields()
+    {
+        var fields = new List<DesktopCustomField>
+        {
+            new("Version", StandardVersionOverride),
+            new("Type", StandardTypeOverride),
+            new("Name", StandardNameOverride),
+            new("Exec", StandardExecOverride),
+            new("Icon", StandardIconOverride),
+            new("Categories", StandardCategoriesOverride),
+            new("Terminal", StandardTerminalOverride)
+        };
+
+        foreach (var customField in CustomFields)
+        {
+            var key = customField.Key.Trim();
+            var value = customField.Value.Trim();
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            fields.Add(new DesktopCustomField(key, value));
+        }
+
+        return fields;
     }
 
     private void RemoveCustomField(object? parameter)
     {
-        if (parameter is DesktopCustomField field)
+        if (parameter is DesktopCustomFieldInput field)
         {
             CustomFields.Remove(field);
+            ValidateCustomFields();
             RaisePropertyChanged(nameof(CustomFieldsSummary));
         }
     }
 
-    private void ClearCustomFieldError()
+    private void ValidateCustomFields()
     {
-        if (HasCustomFieldError)
+        foreach (var field in CustomFields)
         {
-            CustomFieldError = string.Empty;
+            var key = field.Key.Trim();
+            var value = field.Value.Trim();
+            var hasKey = !string.IsNullOrWhiteSpace(key);
+            var hasValue = !string.IsNullOrWhiteSpace(value);
+
+            if (!hasKey && !hasValue)
+            {
+                continue;
+            }
+
+            if (!hasKey || !hasValue)
+            {
+                CustomFieldError = "Fill both key and value for each custom field.";
+                return;
+            }
+
+            if (key.Any(char.IsWhiteSpace) || key.Contains('\n') || key.Contains('\r'))
+            {
+                CustomFieldError = "Custom field key cannot contain spaces or line breaks.";
+                return;
+            }
+
+            if (value.Contains('\n') || value.Contains('\r'))
+            {
+                CustomFieldError = "Custom field value cannot contain line breaks.";
+                return;
+            }
         }
+
+        CustomFieldError = string.Empty;
     }
 
     private static bool ValidateInstallDirectory(string path, out string error)

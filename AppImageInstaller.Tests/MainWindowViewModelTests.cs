@@ -8,44 +8,44 @@ namespace AppImageInstaller.Tests;
 public sealed class MainWindowViewModelTests
 {
     [Fact]
-    public void AddCustomField_AddsItem_WhenInputIsValid()
+    public void AddCustomField_AddsEditableRow()
     {
         var vm = CreateViewModel();
 
-        vm.CustomFieldKey = "X-Test";
-        vm.CustomFieldValue = "123";
         vm.AddCustomFieldCommand.Execute(null);
 
         Assert.Single(vm.CustomFields);
-        Assert.Equal("X-Test", vm.CustomFields[0].Key);
-        Assert.Equal("123", vm.CustomFields[0].Value);
-        Assert.False(vm.HasCustomFieldError);
+        Assert.Equal(string.Empty, vm.CustomFields[0].Key);
+        Assert.Equal(string.Empty, vm.CustomFields[0].Value);
     }
 
     [Fact]
-    public void AddCustomField_RejectsEmptyKeyOrValue()
+    public async Task Install_RejectsPartialCustomFieldRow()
     {
         var vm = CreateViewModel();
 
-        vm.CustomFieldValue = "123";
         vm.AddCustomFieldCommand.Execute(null);
-        Assert.True(vm.HasCustomFieldError);
+        vm.CustomFields[0].Key = "X-Test";
 
-        vm.CustomFieldKey = "X-Test";
-        vm.CustomFieldValue = "";
-        vm.AddCustomFieldCommand.Execute(null);
+        vm.PickAppImageCommand.Execute(null);
+        vm.PickIconCommand.Execute(null);
+        await WaitUntilAsync(() => vm.SelectedAppImagePath is not null && vm.SelectedIconPath is not null);
+        vm.DisplayName = "Sample App";
+        vm.SelectedCategory = "Utility";
+
+        vm.InstallCommand.Execute(null);
+        await Task.Delay(100);
 
         Assert.True(vm.HasCustomFieldError);
-        Assert.Empty(vm.CustomFields);
     }
 
     [Fact]
     public void RemoveCustomField_RemovesItem()
     {
         var vm = CreateViewModel();
-        vm.CustomFieldKey = "X-Test";
-        vm.CustomFieldValue = "123";
         vm.AddCustomFieldCommand.Execute(null);
+        vm.CustomFields[0].Key = "X-Test";
+        vm.CustomFields[0].Value = "123";
 
         var field = vm.CustomFields[0];
         vm.RemoveCustomFieldCommand.Execute(field);
@@ -54,7 +54,7 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
-    public async Task Install_UsesCurrentCustomFields_AndAlsoWorksWithoutCustomFields()
+    public async Task Install_UsesStandardOverrides_AndCustomFields()
     {
         var installer = new FakeInstallerService();
         var vm = CreateViewModel(installer);
@@ -70,20 +70,26 @@ public sealed class MainWindowViewModelTests
         await WaitUntilAsync(() => installer.LastRequest is not null);
 
         Assert.NotNull(installer.LastRequest);
-        Assert.Empty(installer.LastRequest!.CustomFields);
+        Assert.Contains(installer.LastRequest!.CustomFields, field => field.Key == "Version" && field.Value == "1.0");
+        Assert.Contains(installer.LastRequest.CustomFields, field => field.Key == "Type" && field.Value == "Application");
+        Assert.Contains(installer.LastRequest.CustomFields, field => field.Key == "Name" && field.Value == "Sample App");
+        Assert.Contains(installer.LastRequest.CustomFields, field => field.Key == "Categories" && field.Value == "Utility");
+        Assert.Contains(installer.LastRequest.CustomFields, field => field.Key == "Terminal" && field.Value == "false");
 
-        vm.CustomFieldKey = "Exec";
-        vm.CustomFieldValue = "/tmp/override.AppImage";
+        vm.StandardExecOverride = "/opt/my-app.AppImage";
+        vm.StandardIconOverride = "/opt/my-app.png";
         vm.AddCustomFieldCommand.Execute(null);
+        vm.CustomFields[0].Key = "Exec";
+        vm.CustomFields[0].Value = "/tmp/override.AppImage";
 
         installer.LastRequest = null;
         vm.InstallCommand.Execute(null);
         await WaitUntilAsync(() => installer.LastRequest is not null);
 
         Assert.NotNull(installer.LastRequest);
-        Assert.Single(installer.LastRequest!.CustomFields);
-        Assert.Equal("Exec", installer.LastRequest.CustomFields[0].Key);
-        Assert.Equal("/tmp/override.AppImage", installer.LastRequest.CustomFields[0].Value);
+        Assert.Contains(installer.LastRequest!.CustomFields, field => field.Key == "Exec" && field.Value == "/opt/my-app.AppImage");
+        Assert.Equal("Exec", installer.LastRequest.CustomFields[^1].Key);
+        Assert.Equal("/tmp/override.AppImage", installer.LastRequest.CustomFields[^1].Value);
     }
 
     private static MainWindowViewModel CreateViewModel(IAppImageInstallerService? installer = null)

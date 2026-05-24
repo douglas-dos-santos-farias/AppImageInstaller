@@ -8,7 +8,7 @@
         x:Name="RootWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="1280"
-        Height="900"
+        Height="950"
         MinWidth="1024"
         MinHeight="768"
         CanResize="False"
@@ -20,7 +20,7 @@
                 <StackPanel Spacing="12">
                         <Grid ColumnDefinitions="*,220" ColumnSpacing="16">
                             <StackPanel Spacing="12">
-                                <TextBlock Classes="eyebrow" Text="INSTALL FLOW" />
+                                <TextBlock Classes="eyebrow" Text="AppImage Installer" />
                                 <TextBlock Classes="h1" Text="Install AppImage packages." TextWrapping="Wrap" />
                                 <TextBlock Classes="muted"
                                            Text="Select an existing AppImage, assign a custom icon, review the launcher metadata and create the desktop entry in one step."
@@ -50,7 +50,7 @@
             <Border Classes="card accent" Grid.Row="1" Padding="16">
                 <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="16" RowSpacing="10">
                     <StackPanel Spacing="4" VerticalAlignment="Center">
-                        <TextBlock Classes="h2" Text="Install" />
+                        <TextBlock Classes="h2" Text="Installation" />
                         <TextBlock Classes="muted"
                                    Text="After selecting app, icon and category, run installation."
                                    FontSize="12"
@@ -106,7 +106,7 @@
                     <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" RowDefinitions="210,260" ColumnSpacing="20" RowSpacing="16">
                     <Border Classes="card" Grid.Row="0" Grid.Column="0">
                         <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
-                            <TextBlock Classes="h2" Text="AppImage source" />
+                            <TextBlock Classes="h2" Text="Source" />
                             <TextBlock Classes="muted" Grid.Row="1" Text="Use an existing AppImage file. The installer will copy it to the local applications directory and mark it as executable." TextWrapping="Wrap" />
                             <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                 <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16" ClipToBounds="True" MinWidth="0">
@@ -151,7 +151,7 @@
                     <Border Classes="card" Grid.Row="1" Grid.Column="0">
                         <Grid ColumnDefinitions="136,*" RowDefinitions="Auto,*" ColumnSpacing="20" RowSpacing="12">
                             <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8">
-                                <TextBlock Classes="h2" Text="Icon asset" />
+                                <TextBlock Classes="h2" Text="Icon" />
                                 <TextBlock Classes="muted"
                                            Text="PNG, SVG, JPEG and WebP are accepted. The selected file becomes the launcher icon path in the desktop entry."
                                            TextWrapping="Wrap" />
@@ -222,7 +222,7 @@
                     </Border>
                     <Border Classes="card" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Stretch">
                         <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
-                            <TextBlock Classes="h2" Text="Launcher details" />
+                            <TextBlock Classes="h2" Text="Launcher" />
                             <TextBlock Grid.Row="1" Classes="muted" Text="Edit the public name shown in the desktop menu and choose the primary category." TextWrapping="Wrap" />
                             <StackPanel Grid.Row="2" Spacing="8" Margin="0,14,0,0">
                                 <TextBlock Text="Display name" FontWeight="SemiBold" />
@@ -290,7 +290,7 @@
                     IsVisible="{Binding IsAdvancedSettingsModalVisible}">
                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="760" Width="760" Margin="24">
                     <Border Classes="card accent" Padding="24">
-                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="12">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
                             <TextBlock Classes="eyebrow" Text="ADVANCED SETTINGS" />
                             <TextBlock Grid.Row="1" Classes="h2" Text="Custom desktop fields" />
                             <TextBlock Grid.Row="2"
@@ -298,45 +298,62 @@
                                        Text="Add optional key/value pairs to be appended at the end of the Desktop Entry group."
                                        TextWrapping="Wrap" />
 
-                            <Grid Grid.Row="3" RowDefinitions="Auto,Auto,*" RowSpacing="8">
-                                <Grid ColumnDefinitions="1.1*,1.1*,Auto" ColumnSpacing="8">
-                                    <TextBox Text="{Binding CustomFieldKey}"
-                                             PlaceholderText="Key (no spaces)"
-                                             Height="44"
-                                             VerticalContentAlignment="Center" />
-                                    <TextBox Grid.Column="1"
-                                             Text="{Binding CustomFieldValue}"
-                                             PlaceholderText="Value"
-                                             Height="44"
-                                             VerticalContentAlignment="Center" />
-                                    <Button Grid.Column="2"
-                                            Classes="secondary"
-                                            Content="Add field"
-                                            Command="{Binding AddCustomFieldCommand}" />
+                            <Border Grid.Row="3"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    CornerRadius="12"
+                                    Padding="12">
+                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
+                                    <TextBlock Text="Version" VerticalAlignment="Center" />
+                                    <TextBox Grid.Column="1" Text="{Binding StandardVersionOverride}" />
+                                    <TextBlock Grid.Row="1" Text="Type" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StandardTypeOverride}" />
+                                    <TextBlock Grid.Row="2" Text="Name" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StandardNameOverride}" />
+                                    <TextBlock Grid.Row="3" Text="Exec" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding StandardExecOverride}" />
+                                    <TextBlock Grid.Row="4" Text="Icon" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding StandardIconOverride}" />
+                                    <TextBlock Grid.Row="5" Text="Categories" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StandardCategoriesOverride}" />
+                                    <TextBlock Grid.Row="6" Text="Terminal" VerticalAlignment="Center" />
+                                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding StandardTerminalOverride}" />
                                 </Grid>
+                            </Border>
 
+                            <Grid Grid.Row="4" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                                <Button Classes="secondary"
+                                        HorizontalAlignment="Left"
+                                        Content="Add field"
+                                        Command="{Binding AddCustomFieldCommand}" />
                                 <TextBlock Grid.Row="1"
                                            Foreground="{DynamicResource ErrorBrush}"
                                            Text="{Binding CustomFieldError}"
                                            Height="18"
                                            VerticalAlignment="Top"
                                            IsVisible="{Binding HasCustomFieldError}" />
-
-                                <Border Grid.Row="2" Background="{DynamicResource InputBackgroundBrush}" CornerRadius="12" Padding="8">
+                                <Border Grid.Row="2"
+                                        Background="{DynamicResource InputBackgroundBrush}"
+                                        CornerRadius="12"
+                                        Padding="12">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="220">
                                         <ItemsControl ItemsSource="{Binding CustomFields}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,6,0,6">
-                                                        <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
-                                                            <Run Text="{Binding Key}" />
-                                                            <Run Text="=" />
-                                                            <Run Text="{Binding Value}" />
-                                                        </TextBlock>
-                                                        <Button Grid.Column="1"
+                                                    <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8" Margin="0,6,0,10">
+                                                        <TextBlock Text="Key" VerticalAlignment="Center" />
+                                                        <TextBox Grid.Column="1"
+                                                                 Text="{Binding Key}"
+                                                                 PlaceholderText="Key (no spaces)" />
+                                                        <TextBlock Grid.Row="1" Text="Value" VerticalAlignment="Center" />
+                                                        <TextBox Grid.Row="1"
+                                                                 Grid.Column="1"
+                                                                 Text="{Binding Value}"
+                                                                 PlaceholderText="Value" />
+                                                        <Button Grid.Row="2"
+                                                                Grid.ColumnSpan="2"
                                                                 Classes="secondary"
-                                                                Padding="8,2"
                                                                 Content="Remove"
+                                                                HorizontalAlignment="Left"
                                                                 Command="{Binding #RootWindow.DataContext.RemoveCustomFieldCommand}"
                                                                 CommandParameter="{Binding .}" />
                                                     </Grid>
@@ -347,7 +364,7 @@
                                 </Border>
                             </Grid>
 
-                            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                                 <Button Classes="secondary"
                                         Padding="16,8"
                                         Content="Close"
