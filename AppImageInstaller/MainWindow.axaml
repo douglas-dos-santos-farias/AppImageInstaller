@@ -1,0 +1,172 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:AppImageInstaller.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="860"
+        x:Class="AppImageInstaller.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Width="1280"
+        Height="860"
+        MinWidth="1024"
+        MinHeight="760"
+        CanResize="False"
+        Title="AppImage Installer">
+    <Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="28" RowDefinitions="Auto,Auto,Auto" RowSpacing="20">
+                    <Border Classes="card" Grid.Row="0">
+                <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,220" ColumnSpacing="16">
+                            <StackPanel Spacing="12">
+                                <TextBlock Classes="eyebrow" Text="INSTALL FLOW" />
+                                <TextBlock Classes="h1" Text="Install AppImage packages." TextWrapping="Wrap" />
+                                <TextBlock Classes="muted"
+                                           Text="Select an existing AppImage, assign a custom icon, review the launcher metadata and create the desktop entry in one step."
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border Grid.Column="1"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    CornerRadius="22"
+                                    Padding="16"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Top">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Theme" FontWeight="SemiBold" />
+                                    <Button Classes="secondary"
+                                            Padding="12,8"
+                                            Command="{Binding ToggleThemeCommand}"
+                                            Content="{Binding ThemeGlyph}" />
+                                    <TextBlock Classes="muted" Text="{Binding ThemeLabel}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,10,0,0">
+                            <Border Background="{DynamicResource SecondaryButtonBrush}" CornerRadius="16" Padding="14,10">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Target" FontWeight="SemiBold" />
+                                    <TextBlock Classes="muted" Text="{Binding InstallLocation}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                            <Border Background="{DynamicResource SecondaryButtonBrush}" CornerRadius="16" Padding="14,10">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Integration" FontWeight="SemiBold" />
+                                    <TextBlock Classes="muted" Text="Executable permission + .desktop launcher + result modal" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card accent" Grid.Row="1" Margin="0,20,0,0">
+                <StackPanel Spacing="12">
+                    <TextBlock Classes="h2" Text="Install" />
+                    <TextBlock Classes="muted" Text="After selecting app, icon and category, run installation." />
+                    <Button Classes="primary"
+                            Content="Install and create desktop entry"
+                            Command="{Binding InstallCommand}"
+                            IsEnabled="{Binding CanInstall}" />
+                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsInstalling}" />
+                </StackPanel>
+            </Border>
+
+                    <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="20">
+                <Grid RowDefinitions="Auto,Auto" RowSpacing="20">
+                    <Border Classes="card" Grid.Row="0">
+                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                            <TextBlock Classes="h2" Text="AppImage source" />
+                            <TextBlock Classes="muted" Grid.Row="1" Text="Use an existing AppImage file. The installer will copy it to the local applications directory and mark it as executable." TextWrapping="Wrap" />
+                            <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="{Binding AppImageFileName}" FontWeight="SemiBold" />
+                                        <TextBlock Classes="muted" Text="{Binding SelectedAppImagePath}" TextWrapping="Wrap" />
+                                        <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding AppImageError}" IsVisible="{Binding HasAppImageError}" />
+                                    </StackPanel>
+                                </Border>
+                                <Button Grid.Column="1" Classes="secondary" Command="{Binding PickAppImageCommand}" Content="Choose AppImage" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Classes="card" Grid.Row="1">
+                        <Grid ColumnDefinitions="136,*" ColumnSpacing="20">
+                            <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="24" Padding="14" Height="136" Width="136">
+                                <Grid>
+                                    <Image Source="{Binding IconPreview}" Stretch="Uniform" IsVisible="{Binding HasIconPreview}" />
+                                    <TextBlock Text="Icon preview"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Classes="muted"
+                                               IsVisible="{Binding MissingIconPreview}" />
+                                </Grid>
+                            </Border>
+
+                            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                                <TextBlock Classes="h2" Text="Icon asset" />
+                                <TextBlock Classes="muted" Grid.Row="1" Text="PNG, SVG, JPEG and WebP are accepted. The selected file becomes the launcher icon path in the desktop entry." TextWrapping="Wrap" />
+                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="{Binding IconFileName}" FontWeight="SemiBold" />
+                                            <TextBlock Classes="muted" Text="{Binding SelectedIconPath}" TextWrapping="Wrap" />
+                                            <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding IconError}" IsVisible="{Binding HasIconError}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Button Grid.Column="1" Classes="secondary" Command="{Binding PickIconCommand}" Content="Choose icon" />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <Grid Grid.Column="1" RowDefinitions="Auto" RowSpacing="20">
+                    <Border Classes="card">
+                        <StackPanel Spacing="14">
+                            <TextBlock Classes="h2" Text="Launcher details" />
+                            <TextBlock Classes="muted" Text="Edit the public name shown in the desktop menu and choose the primary category." TextWrapping="Wrap" />
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Display name" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding DisplayName}" PlaceholderText="My AppImage" />
+                                <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding DisplayNameError}" IsVisible="{Binding HasDisplayNameError}" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Category" FontWeight="SemiBold" />
+                                <ListBox ItemsSource="{Binding Categories}"
+                                         SelectedItem="{Binding SelectedCategory}"
+                                         Height="160" />
+                                <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding CategoryError}" IsVisible="{Binding HasCategoryError}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+            </Grid>
+                </Grid>
+            </ScrollViewer>
+
+            <Border
+                    Background="#6607111E"
+                    IsVisible="{Binding IsResultModalVisible}">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="680" Width="680" Margin="24">
+                    <Border Classes="card accent" Padding="28">
+                        <StackPanel Spacing="16">
+                            <TextBlock Classes="eyebrow" Text="INSTALL RESULT" />
+                            <TextBlock Classes="h2"
+                                       Text="{Binding ResultModalTitle}"
+                                       Foreground="{Binding ResultModalAccentBrush}" />
+                            <SelectableTextBlock Text="{Binding ResultModalMessage}" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Classes="primary"
+                                        Padding="20,10"
+                                        Content="Close"
+                                        Command="{Binding CloseResultModalCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+    </Grid>
+</Window>
