@@ -288,83 +288,89 @@
 
             <Border Background="#6607111E"
                     IsVisible="{Binding IsAdvancedSettingsModalVisible}">
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="760" Width="760" Margin="24">
-                    <Border Classes="card accent" Padding="24">
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="760" Width="760" Height="640" Margin="24">
+                    <Border Classes="card" Padding="24">
+                        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
                             <TextBlock Classes="eyebrow" Text="ADVANCED SETTINGS" />
-                            <TextBlock Grid.Row="1" Classes="h2" Text="Custom desktop fields" />
-                            <TextBlock Grid.Row="2"
-                                       Classes="muted"
-                                       Text="Add optional key/value pairs to be appended at the end of the Desktop Entry group."
-                                       TextWrapping="Wrap" />
 
-                            <Border Grid.Row="3"
-                                    Background="{DynamicResource InputBackgroundBrush}"
-                                    CornerRadius="12"
-                                    Padding="12">
-                                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8">
-                                    <TextBlock Text="Version" VerticalAlignment="Center" />
-                                    <TextBox Grid.Column="1" Text="{Binding StandardVersionOverride}" />
-                                    <TextBlock Grid.Row="1" Text="Type" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StandardTypeOverride}" />
-                                    <TextBlock Grid.Row="2" Text="Name" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StandardNameOverride}" />
-                                    <TextBlock Grid.Row="3" Text="Exec" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding StandardExecOverride}" />
-                                    <TextBlock Grid.Row="4" Text="Icon" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding StandardIconOverride}" />
-                                    <TextBlock Grid.Row="5" Text="Categories" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StandardCategoriesOverride}" />
-                                    <TextBlock Grid.Row="6" Text="Terminal" VerticalAlignment="Center" />
-                                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding StandardTerminalOverride}" />
-                                </Grid>
-                            </Border>
+                            <TabControl Grid.Row="1">
+                                <TabItem Header="Standard fields">
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                          ColumnSpacing="8"
+                                          RowSpacing="8"
+                                          Margin="0,8,0,0">
+                                        <TextBlock Text="Version" VerticalAlignment="Center" />
+                                        <TextBox Grid.Column="1" Text="{Binding StandardVersionOverride}" />
+                                        <TextBlock Grid.Row="1" Text="Type" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding StandardTypeOverride}" />
+                                        <TextBlock Grid.Row="2" Text="Name" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StandardNameOverride}" />
+                                        <TextBlock Grid.Row="3" Text="Exec" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding StandardExecOverride}" />
+                                        <TextBlock Grid.Row="4" Text="Icon" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding StandardIconOverride}" />
+                                        <TextBlock Grid.Row="5" Text="Categories" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding StandardCategoriesOverride}" />
+                                        <TextBlock Grid.Row="6" Text="Terminal" VerticalAlignment="Center" />
+                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding StandardTerminalOverride}" />
+                                    </Grid>
+                                </TabItem>
+                                <TabItem Header="Custom fields">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="4" Margin="0,8,0,0">
+                                        <TextBlock Classes="muted"
+                                                   Text="Add optional key/value pairs to be appended at the end of the Desktop Entry group."
+                                                   TextWrapping="Wrap" />
+                                        <Button Grid.Row="1"
+                                                Classes="secondary"
+                                                HorizontalAlignment="Left"
+                                                Content="Add field"
+                                                Command="{Binding AddCustomFieldCommand}" />
+                                        <TextBlock Grid.Row="2"
+                                                   Foreground="{DynamicResource ErrorBrush}"
+                                                   Text="{Binding CustomFieldError}"
+                                                   Height="14"
+                                                   VerticalAlignment="Top"
+                                                   IsVisible="{Binding HasCustomFieldError}" />
+                                        <ScrollViewer Grid.Row="3"
+                                                      VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      VerticalContentAlignment="Top"
+                                                      MinHeight="320"
+                                                      Padding="0,0,10,0">
+                                            <ItemsControl ItemsSource="{Binding CustomFields}"
+                                                          VerticalAlignment="Top">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8" Margin="0,0,0,10">
+                                                            <TextBlock Text="Key" VerticalAlignment="Center" />
+                                                            <TextBox Grid.Column="1"
+                                                                     Text="{Binding Key}"
+                                                                     PlaceholderText="Key (no spaces)"
+                                                                     HorizontalAlignment="Stretch" />
+                                                            <TextBlock Grid.Row="1" Text="Value" VerticalAlignment="Center" />
+                                                            <TextBox Grid.Row="1"
+                                                                     Grid.Column="1"
+                                                                     Text="{Binding Value}"
+                                                                     PlaceholderText="Value"
+                                                                     HorizontalAlignment="Stretch" />
+                                                            <Button Grid.Row="2"
+                                                                    Grid.ColumnSpan="2"
+                                                                    Classes="secondary"
+                                                                    Content="Remove"
+                                                                    HorizontalAlignment="Left"
+                                                                    Command="{Binding #RootWindow.DataContext.RemoveCustomFieldCommand}"
+                                                                    CommandParameter="{Binding .}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </Grid>
+                                </TabItem>
+                            </TabControl>
 
-                            <Grid Grid.Row="4" RowDefinitions="Auto,Auto,*" RowSpacing="8">
-                                <Button Classes="secondary"
-                                        HorizontalAlignment="Left"
-                                        Content="Add field"
-                                        Command="{Binding AddCustomFieldCommand}" />
-                                <TextBlock Grid.Row="1"
-                                           Foreground="{DynamicResource ErrorBrush}"
-                                           Text="{Binding CustomFieldError}"
-                                           Height="18"
-                                           VerticalAlignment="Top"
-                                           IsVisible="{Binding HasCustomFieldError}" />
-                                <Border Grid.Row="2"
-                                        Background="{DynamicResource InputBackgroundBrush}"
-                                        CornerRadius="12"
-                                        Padding="12">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="220">
-                                        <ItemsControl ItemsSource="{Binding CustomFields}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="8" Margin="0,6,0,10">
-                                                        <TextBlock Text="Key" VerticalAlignment="Center" />
-                                                        <TextBox Grid.Column="1"
-                                                                 Text="{Binding Key}"
-                                                                 PlaceholderText="Key (no spaces)" />
-                                                        <TextBlock Grid.Row="1" Text="Value" VerticalAlignment="Center" />
-                                                        <TextBox Grid.Row="1"
-                                                                 Grid.Column="1"
-                                                                 Text="{Binding Value}"
-                                                                 PlaceholderText="Value" />
-                                                        <Button Grid.Row="2"
-                                                                Grid.ColumnSpan="2"
-                                                                Classes="secondary"
-                                                                Content="Remove"
-                                                                HorizontalAlignment="Left"
-                                                                Command="{Binding #RootWindow.DataContext.RemoveCustomFieldCommand}"
-                                                                CommandParameter="{Binding .}" />
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Border>
-                            </Grid>
-
-                            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                                 <Button Classes="secondary"
                                         Padding="16,8"
                                         Content="Close"
