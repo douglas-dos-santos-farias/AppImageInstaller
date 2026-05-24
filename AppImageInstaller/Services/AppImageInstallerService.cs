@@ -23,11 +23,11 @@ public sealed class AppImageInstallerService(IDesktopEntryWriter desktopEntryWri
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var baseDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".local",
-            "share",
-            "applications");
+        var baseDirectory = request.InstallDirectory;
+        if (string.IsNullOrWhiteSpace(baseDirectory))
+        {
+            throw new ArgumentException("Installation directory is required.", nameof(request));
+        }
 
         Directory.CreateDirectory(baseDirectory);
 
@@ -50,6 +50,7 @@ public sealed class AppImageInstallerService(IDesktopEntryWriter desktopEntryWri
             installedAppImagePath,
             installedIconPath,
             request.Category,
+            request.CustomFields,
             cancellationToken);
 
         File.SetUnixFileMode(

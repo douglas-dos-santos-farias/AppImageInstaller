@@ -7,12 +7,15 @@ AppImage Installer é um app desktop Linux em .NET/Avalonia para instalar arquiv
 ## O que o app faz
 
 Ao instalar, o app:
-1. Copia o AppImage para `~/.local/share/applications`
-2. Copia o ícone para `~/.local/share/applications`
-3. Aplica permissão de execução no AppImage
-4. Gera um `.desktop` com `Exec`, `Icon`, `Name`, `Categories`
+1. Usa `~/.local/share/applications` por padrão ou uma pasta custom escolhida pelo usuário
+2. Copia o AppImage para o diretório de instalação selecionado
+3. Copia o ícone para o mesmo diretório
+4. Gera o `.desktop` nesse mesmo diretório
+5. Salva a última pasta selecionada em `~/.config/AppImageInstaller/settings.json`
+6. Aplica permissão de execução no AppImage
 
 Também existe validação de formulário e modal de resultado (sucesso/erro) dentro da própria janela.
+Também existe seção de campos customizados `Key=Value` no card `Launcher details`.
 
 ## Stack
 
@@ -57,6 +60,7 @@ AppImageInstaller/
   - Cópia de arquivos e permissões
 - `DesktopEntryWriter`:
   - Serialização do conteúdo `.desktop`
+  - Escrita de campos customizados no fim do grupo `[Desktop Entry]`
 - `AvaloniaFilePickerService`:
   - Abre diálogo nativo para escolher AppImage e ícone
 
@@ -94,7 +98,8 @@ dotnet run --project AppImageInstaller/AppImageInstaller.csproj
 ## Comportamento de instalação
 
 Destino atual:
-- `~/.local/share/applications`
+- padrão: `~/.local/share/applications`
+- custom: definido via botão `Change folder` na UI
 
 Nomes gerados:
 - Baseados no `Display name` (slug)
@@ -115,6 +120,27 @@ Exec=/home/user/.local/share/applications/my-cool-app.AppImage
 Icon=/home/user/.local/share/applications/my-cool-app.png
 Categories=Utility;
 Terminal=false
+```
+
+## Campos customizados no `.desktop`
+
+- A UI permite adicionar/remover pares `Key=Value` em uma lista com rolagem.
+- Os campos customizados são gravados ao final do arquivo.
+- Em caso de conflito com chaves padrão (`Name`, `Exec`, etc.), a última ocorrência prevalece; portanto o custom sobrescreve por ordem de escrita.
+
+Exemplo:
+
+```ini
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=My Cool App
+Exec=/home/user/.local/share/applications/my-cool-app.AppImage
+Icon=/home/user/.local/share/applications/my-cool-app.png
+Categories=Utility;
+Terminal=false
+Name=My Cool App (Custom)
+X-AppImage-Channel=beta
 ```
 
 ## Tema (claro/escuro)

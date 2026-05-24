@@ -5,6 +5,7 @@
         xmlns:vm="using:AppImageInstaller.ViewModels"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="860"
         x:Class="AppImageInstaller.MainWindow"
+        x:Name="RootWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="1280"
         Height="900"
@@ -43,63 +44,133 @@
                             </Border>
                         </Grid>
 
-                        <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,10,0,0">
-                            <Border Background="{DynamicResource SecondaryButtonBrush}" CornerRadius="16" Padding="14,10">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="Target" FontWeight="SemiBold" />
-                                    <TextBlock Classes="muted" Text="{Binding InstallLocation}" TextWrapping="Wrap" />
-                                </StackPanel>
-                            </Border>
-                            <Border Background="{DynamicResource SecondaryButtonBrush}" CornerRadius="16" Padding="14,10">
-                                <StackPanel Spacing="4">
-                                    <TextBlock Text="Integration" FontWeight="SemiBold" />
-                                    <TextBlock Classes="muted" Text="Executable permission + .desktop launcher + result modal" />
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
                 </StackPanel>
             </Border>
 
-            <Border Classes="card accent" Grid.Row="1" Margin="0,20,0,0">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
-                    <StackPanel Spacing="8" VerticalAlignment="Center">
+            <Border Classes="card accent" Grid.Row="1" Padding="16">
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="16" RowSpacing="10">
+                    <StackPanel Spacing="4" VerticalAlignment="Center">
                         <TextBlock Classes="h2" Text="Install" />
-                        <TextBlock Classes="muted" Text="After selecting app, icon and category, run installation." />
-                        <ProgressBar Width="320" IsIndeterminate="True" IsVisible="{Binding IsInstalling}" />
+                        <TextBlock Classes="muted"
+                                   Text="After selecting app, icon and category, run installation."
+                                   FontSize="12"
+                                   TextWrapping="Wrap" />
+                        <ProgressBar Width="220" Height="3" IsIndeterminate="True" IsVisible="{Binding IsInstalling}" />
                     </StackPanel>
+
+                    <Border Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            Background="{DynamicResource SecondaryButtonBrush}"
+                            BorderBrush="{DynamicResource SecondaryButtonBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="14"
+                            Padding="10,8">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Target folder" FontWeight="SemiBold" FontSize="12" />
+                            <TextBlock Classes="muted"
+                                       Text="{Binding InstallLocation}"
+                                       FontSize="12"
+                                       MaxWidth="520"
+                                       HorizontalAlignment="Left"
+                                       TextAlignment="Left"
+                                       TextTrimming="CharacterEllipsis" />
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,8,0,0">
+                                <Button Classes="secondary"
+                                        Padding="8,4"
+                                        Content="Change folder"
+                                        Command="{Binding PickInstallDirectoryCommand}" />
+                                <Button Classes="secondary"
+                                        Padding="8,4"
+                                        Content="Reset default"
+                                        Command="{Binding ResetInstallDirectoryCommand}" />
+                            </StackPanel>
+                            <TextBlock Foreground="{DynamicResource ErrorBrush}"
+                                       Text="{Binding InstallLocationError}"
+                                       IsVisible="{Binding HasInstallLocationError}"
+                                       TextWrapping="Wrap"
+                                       FontSize="11" />
+                        </StackPanel>
+                    </Border>
+
                     <Button Grid.Column="1"
                             Classes="primary"
+                            HorizontalAlignment="Right"
                             VerticalAlignment="Center"
-                            Content="Install and create desktop entry"
+                            Padding="14,10"
+                            Content="Install"
                             Command="{Binding InstallCommand}"
                             IsEnabled="{Binding CanInstall}" />
                 </Grid>
             </Border>
 
-                    <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" ColumnSpacing="20">
-                <Grid RowDefinitions="Auto,Auto" RowSpacing="20">
-                    <Border Classes="card" Grid.Row="0">
+                    <Grid Grid.Row="2" ColumnDefinitions="1.2*,0.8*" RowDefinitions="210,260" ColumnSpacing="20" RowSpacing="16">
+                    <Border Classes="card" Grid.Row="0" Grid.Column="0">
                         <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
                             <TextBlock Classes="h2" Text="AppImage source" />
                             <TextBlock Classes="muted" Grid.Row="1" Text="Use an existing AppImage file. The installer will copy it to the local applications directory and mark it as executable." TextWrapping="Wrap" />
                             <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                                <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16">
-                                    <StackPanel Spacing="6">
-                                        <TextBlock Text="{Binding AppImageFileName}" FontWeight="SemiBold" />
-                                        <TextBlock Classes="muted" Text="{Binding SelectedAppImagePath}" TextWrapping="Wrap" />
-                                        <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding AppImageError}" IsVisible="{Binding HasAppImageError}" />
-                                    </StackPanel>
+                                <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16" ClipToBounds="True" MinWidth="0">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                                        <TextBlock Text="{Binding AppImageFileName}"
+                                                   FontWeight="SemiBold"
+                                                   MinWidth="0"
+                                                   HorizontalAlignment="Stretch"
+                                                   TextWrapping="NoWrap"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Row="1"
+                                                   Classes="muted"
+                                                   Text="{Binding SelectedAppImagePath}"
+                                                   MinWidth="0"
+                                                   HorizontalAlignment="Stretch"
+                                                   TextWrapping="NoWrap"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Row="2"
+                                                   Foreground="{DynamicResource ErrorBrush}"
+                                                   Text="{Binding AppImageError}"
+                                                   MinWidth="0"
+                                                   Height="18"
+                                                   HorizontalAlignment="Stretch"
+                                                   VerticalAlignment="Top"
+                                                   TextWrapping="NoWrap"
+                                                   MaxLines="1"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
                                 </Border>
-                                <Button Grid.Column="1" Classes="secondary" Command="{Binding PickAppImageCommand}" Content="Choose AppImage" />
+                                <Button Grid.Column="1"
+                                        Classes="secondary"
+                                        Command="{Binding PickAppImageCommand}"
+                                        Content="Choose AppImage"
+                                        VerticalAlignment="Bottom"
+                                        MinWidth="160" />
                             </Grid>
                         </Grid>
                     </Border>
 
-                    <Border Classes="card" Grid.Row="1">
-                        <Grid ColumnDefinitions="136,*" ColumnSpacing="20">
-                            <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="24" Padding="14" Height="136" Width="136">
+                    <Border Classes="card" Grid.Row="1" Grid.Column="0">
+                        <Grid ColumnDefinitions="136,*" RowDefinitions="Auto,*" ColumnSpacing="20" RowSpacing="12">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8">
+                                <TextBlock Classes="h2" Text="Icon asset" />
+                                <TextBlock Classes="muted"
+                                           Text="PNG, SVG, JPEG and WebP are accepted. The selected file becomes the launcher icon path in the desktop entry."
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border Grid.Row="1"
+                                    Grid.Column="0"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    CornerRadius="24"
+                                    Padding="0"
+                                    ClipToBounds="True"
+                                    Height="136"
+                                    Width="136">
                                 <Grid>
-                                    <Image Source="{Binding IconPreview}" Stretch="Uniform" IsVisible="{Binding HasIconPreview}" />
+                                    <Image Source="{Binding IconPreview}"
+                                           Stretch="UniformToFill"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           IsVisible="{Binding HasIconPreview}" />
                                     <TextBlock Text="Icon preview"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
@@ -108,45 +179,87 @@
                                 </Grid>
                             </Border>
 
-                            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
-                                <TextBlock Classes="h2" Text="Icon asset" />
-                                <TextBlock Classes="muted" Grid.Row="1" Text="PNG, SVG, JPEG and WebP are accepted. The selected file becomes the launcher icon path in the desktop entry." TextWrapping="Wrap" />
-                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                                    <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16">
-                                        <StackPanel Spacing="6">
-                                            <TextBlock Text="{Binding IconFileName}" FontWeight="SemiBold" />
-                                            <TextBlock Classes="muted" Text="{Binding SelectedIconPath}" TextWrapping="Wrap" />
-                                            <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding IconError}" IsVisible="{Binding HasIconError}" />
-                                        </StackPanel>
+                            <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto" RowSpacing="12" VerticalAlignment="Bottom">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="18" Padding="16" ClipToBounds="True" MinWidth="0">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                                            <TextBlock Text="{Binding IconFileName}"
+                                                       FontWeight="SemiBold"
+                                                       MinWidth="0"
+                                                       HorizontalAlignment="Stretch"
+                                                       TextWrapping="NoWrap"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Row="1"
+                                                       Classes="muted"
+                                                       Text="{Binding SelectedIconPath}"
+                                                       MinWidth="0"
+                                                       HorizontalAlignment="Stretch"
+                                                       TextWrapping="NoWrap"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Row="2"
+                                                       Foreground="{DynamicResource ErrorBrush}"
+                                                       Text="{Binding IconError}"
+                                                       MinWidth="0"
+                                                       Height="18"
+                                                       HorizontalAlignment="Stretch"
+                                                       VerticalAlignment="Top"
+                                                       TextWrapping="NoWrap"
+                                                       MaxLines="1"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </Grid>
                                     </Border>
-                                    <Button Grid.Column="1" Classes="secondary" Command="{Binding PickIconCommand}" Content="Choose icon" />
+                                    <Button Grid.Column="1"
+                                            Classes="secondary"
+                                            Command="{Binding PickIconCommand}"
+                                            Content="Choose icon"
+                                            VerticalAlignment="Bottom"
+                                            MinWidth="120" />
                                 </Grid>
                             </Grid>
                         </Grid>
                     </Border>
-                </Grid>
-
-                <Grid Grid.Column="1" RowDefinitions="Auto" RowSpacing="20">
-                    <Border Classes="card">
-                        <StackPanel Spacing="14">
+                    <Border Classes="card" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" VerticalAlignment="Stretch">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
                             <TextBlock Classes="h2" Text="Launcher details" />
-                            <TextBlock Classes="muted" Text="Edit the public name shown in the desktop menu and choose the primary category." TextWrapping="Wrap" />
-                            <StackPanel Spacing="8">
+                            <TextBlock Grid.Row="1" Classes="muted" Text="Edit the public name shown in the desktop menu and choose the primary category." TextWrapping="Wrap" />
+                            <StackPanel Grid.Row="2" Spacing="8" Margin="0,14,0,0">
                                 <TextBlock Text="Display name" FontWeight="SemiBold" />
                                 <TextBox Text="{Binding DisplayName}" PlaceholderText="My AppImage" />
                                 <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding DisplayNameError}" IsVisible="{Binding HasDisplayNameError}" />
                             </StackPanel>
-                            <StackPanel Spacing="8">
+                            <Border Grid.Row="3"
+                                    Background="{DynamicResource InputBackgroundBrush}"
+                                    CornerRadius="12"
+                                    Padding="12"
+                                    Margin="0,14,0,0">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Advanced launcher settings" FontWeight="SemiBold" />
+                                        <TextBlock Classes="muted" Text="{Binding CustomFieldsSummary}" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            Classes="secondary"
+                                            Content="Configure"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding OpenAdvancedSettingsModalCommand}" />
+                                </Grid>
+                            </Border>
+                            <Grid Grid.Row="4" RowDefinitions="Auto,*,Auto" RowSpacing="8" Margin="0,12,0,0" VerticalAlignment="Stretch" MinHeight="150">
                                 <TextBlock Text="Category" FontWeight="SemiBold" />
-                                <ListBox ItemsSource="{Binding Categories}"
+                                <ListBox Grid.Row="1"
+                                         ItemsSource="{Binding Categories}"
                                          SelectedItem="{Binding SelectedCategory}"
-                                         Height="160" />
-                                <TextBlock Foreground="{DynamicResource ErrorBrush}" Text="{Binding CategoryError}" IsVisible="{Binding HasCategoryError}" />
-                            </StackPanel>
-                        </StackPanel>
+                                         VerticalAlignment="Stretch"
+                                         MinHeight="80" />
+                                <TextBlock Grid.Row="2"
+                                           Foreground="{DynamicResource ErrorBrush}"
+                                           Text="{Binding CategoryError}"
+                                           IsVisible="{Binding HasCategoryError}" />
+                            </Grid>
+                        </Grid>
                     </Border>
-
-                </Grid>
             </Grid>
                 </Grid>
             </ScrollViewer>
@@ -169,6 +282,78 @@
                                         Command="{Binding CloseResultModalCommand}" />
                             </StackPanel>
                         </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <Border Background="#6607111E"
+                    IsVisible="{Binding IsAdvancedSettingsModalVisible}">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="760" Width="760" Margin="24">
+                    <Border Classes="card accent" Padding="24">
+                        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="12">
+                            <TextBlock Classes="eyebrow" Text="ADVANCED SETTINGS" />
+                            <TextBlock Grid.Row="1" Classes="h2" Text="Custom desktop fields" />
+                            <TextBlock Grid.Row="2"
+                                       Classes="muted"
+                                       Text="Add optional key/value pairs to be appended at the end of the Desktop Entry group."
+                                       TextWrapping="Wrap" />
+
+                            <Grid Grid.Row="3" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                                <Grid ColumnDefinitions="1.1*,1.1*,Auto" ColumnSpacing="8">
+                                    <TextBox Text="{Binding CustomFieldKey}"
+                                             PlaceholderText="Key (no spaces)"
+                                             Height="44"
+                                             VerticalContentAlignment="Center" />
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding CustomFieldValue}"
+                                             PlaceholderText="Value"
+                                             Height="44"
+                                             VerticalContentAlignment="Center" />
+                                    <Button Grid.Column="2"
+                                            Classes="secondary"
+                                            Content="Add field"
+                                            Command="{Binding AddCustomFieldCommand}" />
+                                </Grid>
+
+                                <TextBlock Grid.Row="1"
+                                           Foreground="{DynamicResource ErrorBrush}"
+                                           Text="{Binding CustomFieldError}"
+                                           Height="18"
+                                           VerticalAlignment="Top"
+                                           IsVisible="{Binding HasCustomFieldError}" />
+
+                                <Border Grid.Row="2" Background="{DynamicResource InputBackgroundBrush}" CornerRadius="12" Padding="8">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="220">
+                                        <ItemsControl ItemsSource="{Binding CustomFields}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,6,0,6">
+                                                        <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                                                            <Run Text="{Binding Key}" />
+                                                            <Run Text="=" />
+                                                            <Run Text="{Binding Value}" />
+                                                        </TextBlock>
+                                                        <Button Grid.Column="1"
+                                                                Classes="secondary"
+                                                                Padding="8,2"
+                                                                Content="Remove"
+                                                                Command="{Binding #RootWindow.DataContext.RemoveCustomFieldCommand}"
+                                                                CommandParameter="{Binding .}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                <Button Classes="secondary"
+                                        Padding="16,8"
+                                        Content="Close"
+                                        Command="{Binding CloseAdvancedSettingsModalCommand}" />
+                            </StackPanel>
+                        </Grid>
                     </Border>
                 </Grid>
             </Border>

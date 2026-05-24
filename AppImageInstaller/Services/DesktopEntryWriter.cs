@@ -1,4 +1,5 @@
 using System.Text;
+using AppImageInstaller.Models;
 
 namespace AppImageInstaller.Services;
 
@@ -10,6 +11,7 @@ public sealed class DesktopEntryWriter : IDesktopEntryWriter
         string execPath,
         string iconPath,
         string category,
+        IReadOnlyList<DesktopCustomField> customFields,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -24,6 +26,18 @@ public sealed class DesktopEntryWriter : IDesktopEntryWriter
         builder.AppendLine($"Categories={EscapeCategory(category)};");
         builder.AppendLine("Terminal=false");
 
+        foreach (var field in customFields)
+        {
+            var key = SanitizeKey(field.Key);
+            var value = SanitizeValue(field.Value);
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            builder.AppendLine($"{key}={value}");
+        }
+
         await File.WriteAllTextAsync(desktopEntryPath, builder.ToString(), cancellationToken);
         return desktopEntryPath;
     }
@@ -32,4 +46,13 @@ public sealed class DesktopEntryWriter : IDesktopEntryWriter
 
     private static string EscapeCategory(string category)
         => string.Concat(category.Where(char.IsLetterOrDigit));
+
+    private static string SanitizeKey(string key)
+    {
+        var sanitized = key.Replace("\r", string.Empty).Replace("\n", string.Empty).Trim();
+        return sanitized.Any(char.IsWhiteSpace) ? string.Empty : sanitized;
+    }
+
+    private static string SanitizeValue(string value)
+        => value.Replace("\r", " ").Replace("\n", " ").Trim();
 }

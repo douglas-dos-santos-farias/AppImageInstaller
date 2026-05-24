@@ -11,6 +11,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 {
     private readonly IFilePickerService filePickerService;
     private readonly IAppImageInstallerService installerService;
+    private readonly IAppSettingsService appSettingsService;
     private readonly Action<string> applyTheme;
     private Bitmap? iconPreview;
     private string? selectedAppImagePath;
@@ -18,20 +19,31 @@ public sealed class MainWindowViewModel : ViewModelBase
     private string displayName = string.Empty;
     private string selectedCategory = "Utility";
     private string selectedThemeKey = "Light";
+    private string customFieldKey = string.Empty;
+    private string customFieldValue = string.Empty;
     private string appImageError = string.Empty;
     private string iconError = string.Empty;
     private string displayNameError = string.Empty;
     private string categoryError = string.Empty;
+    private string installLocationError = string.Empty;
+    private string customFieldError = string.Empty;
+    private string installLocation = DefaultInstallLocation;
     private bool isResultModalVisible;
+    private bool isAdvancedSettingsModalVisible;
     private string resultModalTitle = string.Empty;
     private string resultModalMessage = string.Empty;
     private bool resultIsSuccess;
     private bool isInstalling;
 
-    public MainWindowViewModel(IFilePickerService filePickerService, IAppImageInstallerService installerService, Action<string> applyTheme)
+    public MainWindowViewModel(
+        IFilePickerService filePickerService,
+        IAppImageInstallerService installerService,
+        IAppSettingsService appSettingsService,
+        Action<string> applyTheme)
     {
         this.filePickerService = filePickerService;
         this.installerService = installerService;
+        this.appSettingsService = appSettingsService;
         this.applyTheme = applyTheme;
 
         Categories = new ObservableCollection<string>
@@ -47,26 +59,42 @@ public sealed class MainWindowViewModel : ViewModelBase
             "System",
             "Utility"
         };
+        CustomFields = new ObservableCollection<DesktopCustomField>();
+
+        InitializeInstallLocation();
 
         PickAppImageCommand = new AsyncCommand(PickAppImageAsync, () => !IsInstalling);
         PickIconCommand = new AsyncCommand(PickIconAsync, () => !IsInstalling);
+        PickInstallDirectoryCommand = new AsyncCommand(PickInstallDirectoryAsync, () => !IsInstalling);
         InstallCommand = new AsyncCommand(InstallAsync, () => !IsInstalling);
+        ResetInstallDirectoryCommand = new RelayCommand(ResetInstallDirectory, () => !IsInstalling);
         ToggleThemeCommand = new RelayCommand(ToggleTheme);
         CloseResultModalCommand = new RelayCommand(CloseResultModal);
+        OpenAdvancedSettingsModalCommand = new RelayCommand(OpenAdvancedSettingsModal, () => !IsInstalling);
+        CloseAdvancedSettingsModalCommand = new RelayCommand(CloseAdvancedSettingsModal, () => !IsInstalling);
+        AddCustomFieldCommand = new RelayCommand(AddCustomField, () => !IsInstalling);
+        RemoveCustomFieldCommand = new RelayCommand(RemoveCustomField, () => !IsInstalling);
         applyTheme(selectedThemeKey);
     }
 
+    private static string DefaultInstallLocation => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".local",
+        "share",
+        "applications");
+
     public ObservableCollection<string> Categories { get; }
-
     public ICommand PickAppImageCommand { get; }
-
     public ICommand PickIconCommand { get; }
-
+    public ICommand PickInstallDirectoryCommand { get; }
     public ICommand InstallCommand { get; }
-
+    public ICommand ResetInstallDirectoryCommand { get; }
     public ICommand ToggleThemeCommand { get; }
-
     public ICommand CloseResultModalCommand { get; }
+    public ICommand OpenAdvancedSettingsModalCommand { get; }
+    public ICommand CloseAdvancedSettingsModalCommand { get; }
+    public ICommand AddCustomFieldCommand { get; }
+    public ICommand RemoveCustomFieldCommand { get; }
 
     public string? SelectedAppImagePath
     {
@@ -114,6 +142,44 @@ public sealed class MainWindowViewModel : ViewModelBase
             if (SetProperty(ref selectedCategory, value))
             {
                 RaisePropertyChanged(nameof(CanInstall));
+            }
+        }
+    }
+
+    public string InstallLocation
+    {
+        get => installLocation;
+        private set
+        {
+            if (SetProperty(ref installLocation, value))
+            {
+                RaisePropertyChanged(nameof(CanInstall));
+            }
+        }
+    }
+
+    public ObservableCollection<DesktopCustomField> CustomFields { get; }
+
+    public string CustomFieldKey
+    {
+        get => customFieldKey;
+        set
+        {
+            if (SetProperty(ref customFieldKey, value))
+            {
+                ClearCustomFieldError();
+            }
+        }
+    }
+
+    public string CustomFieldValue
+    {
+        get => customFieldValue;
+        set
+        {
+            if (SetProperty(ref customFieldValue, value))
+            {
+                ClearCustomFieldError();
             }
         }
     }
@@ -175,6 +241,30 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public string InstallLocationError
+    {
+        get => installLocationError;
+        private set
+        {
+            if (SetProperty(ref installLocationError, value))
+            {
+                RaisePropertyChanged(nameof(HasInstallLocationError));
+            }
+        }
+    }
+
+    public string CustomFieldError
+    {
+        get => customFieldError;
+        private set
+        {
+            if (SetProperty(ref customFieldError, value))
+            {
+                RaisePropertyChanged(nameof(HasCustomFieldError));
+            }
+        }
+    }
+
     public bool IsInstalling
     {
         get => isInstalling;
@@ -192,22 +282,18 @@ public sealed class MainWindowViewModel : ViewModelBase
                               !string.IsNullOrWhiteSpace(SelectedAppImagePath) &&
                               !string.IsNullOrWhiteSpace(SelectedIconPath) &&
                               !string.IsNullOrWhiteSpace(DisplayName) &&
-                              !string.IsNullOrWhiteSpace(SelectedCategory);
+                              !string.IsNullOrWhiteSpace(SelectedCategory) &&
+                              !string.IsNullOrWhiteSpace(InstallLocation);
 
     public string AppImageFileName => Path.GetFileName(SelectedAppImagePath) ?? "No AppImage selected";
-
     public string IconFileName => Path.GetFileName(SelectedIconPath) ?? "No icon selected";
-
     public bool HasAppImageError => !string.IsNullOrWhiteSpace(AppImageError);
-
     public bool HasIconError => !string.IsNullOrWhiteSpace(IconError);
-
     public bool HasDisplayNameError => !string.IsNullOrWhiteSpace(DisplayNameError);
-
     public bool HasCategoryError => !string.IsNullOrWhiteSpace(CategoryError);
-
+    public bool HasInstallLocationError => !string.IsNullOrWhiteSpace(InstallLocationError);
+    public bool HasCustomFieldError => !string.IsNullOrWhiteSpace(CustomFieldError);
     public bool HasIconPreview => IconPreview is not null;
-
     public bool MissingIconPreview => !HasIconPreview;
 
     public bool IsResultModalVisible
@@ -215,6 +301,19 @@ public sealed class MainWindowViewModel : ViewModelBase
         get => isResultModalVisible;
         private set => SetProperty(ref isResultModalVisible, value);
     }
+
+    public bool IsAdvancedSettingsModalVisible
+    {
+        get => isAdvancedSettingsModalVisible;
+        private set => SetProperty(ref isAdvancedSettingsModalVisible, value);
+    }
+
+    public string CustomFieldsSummary => CustomFields.Count switch
+    {
+        0 => "No custom fields configured.",
+        1 => "1 custom field configured.",
+        var count => $"{count} custom fields configured."
+    };
 
     public string ResultModalTitle
     {
@@ -255,10 +354,6 @@ public sealed class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string InstallLocation => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        ".local/share/applications");
-
     private async Task PickAppImageAsync()
     {
         var path = await filePickerService.PickAppImageAsync();
@@ -287,6 +382,26 @@ public sealed class MainWindowViewModel : ViewModelBase
         Validate();
     }
 
+    private async Task PickInstallDirectoryAsync()
+    {
+        var selectedPath = await filePickerService.PickInstallDirectoryAsync(InstallLocation);
+        if (string.IsNullOrWhiteSpace(selectedPath))
+        {
+            return;
+        }
+
+        if (!ValidateInstallDirectory(selectedPath, out var error))
+        {
+            InstallLocationError = error;
+            return;
+        }
+
+        InstallLocation = selectedPath;
+        InstallLocationError = string.Empty;
+        await appSettingsService.SaveLastInstallDirectoryAsync(selectedPath);
+        Validate();
+    }
+
     private async Task InstallAsync()
     {
         if (!Validate())
@@ -301,8 +416,12 @@ public sealed class MainWindowViewModel : ViewModelBase
             var result = await installerService.InstallAsync(new InstallRequest(
                 SelectedAppImagePath!,
                 SelectedIconPath!,
+                InstallLocation,
                 DisplayName.Trim(),
-                SelectedCategory));
+                SelectedCategory,
+                CustomFields.ToList()));
+
+            await appSettingsService.SaveLastInstallDirectoryAsync(InstallLocation);
 
             ShowResultModal(
                 true,
@@ -326,13 +445,117 @@ public sealed class MainWindowViewModel : ViewModelBase
         DisplayNameError = string.IsNullOrWhiteSpace(DisplayName) ? "Enter a display name." : string.Empty;
         CategoryError = string.IsNullOrWhiteSpace(SelectedCategory) ? "Choose a category." : string.Empty;
 
+        InstallLocationError = ValidateInstallDirectory(InstallLocation, out var folderError)
+            ? string.Empty
+            : folderError;
+
         RaisePropertyChanged(nameof(CanInstall));
         RaiseCommands();
 
         return string.IsNullOrEmpty(AppImageError) &&
                string.IsNullOrEmpty(IconError) &&
                string.IsNullOrEmpty(DisplayNameError) &&
-               string.IsNullOrEmpty(CategoryError);
+               string.IsNullOrEmpty(CategoryError) &&
+               string.IsNullOrEmpty(InstallLocationError);
+    }
+
+    private void AddCustomField()
+    {
+        var key = CustomFieldKey.Trim();
+        var value = CustomFieldValue.Trim();
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            CustomFieldError = "Key is required.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            CustomFieldError = "Value is required.";
+            return;
+        }
+
+        if (key.Any(char.IsWhiteSpace) || key.Contains('\n') || key.Contains('\r'))
+        {
+            CustomFieldError = "Key cannot contain spaces or line breaks.";
+            return;
+        }
+
+        if (value.Contains('\n') || value.Contains('\r'))
+        {
+            CustomFieldError = "Value cannot contain line breaks.";
+            return;
+        }
+
+        CustomFields.Add(new DesktopCustomField(key, value));
+        CustomFieldKey = string.Empty;
+        CustomFieldValue = string.Empty;
+        CustomFieldError = string.Empty;
+        RaisePropertyChanged(nameof(CustomFieldsSummary));
+    }
+
+    private void RemoveCustomField(object? parameter)
+    {
+        if (parameter is DesktopCustomField field)
+        {
+            CustomFields.Remove(field);
+            RaisePropertyChanged(nameof(CustomFieldsSummary));
+        }
+    }
+
+    private void ClearCustomFieldError()
+    {
+        if (HasCustomFieldError)
+        {
+            CustomFieldError = string.Empty;
+        }
+    }
+
+    private static bool ValidateInstallDirectory(string path, out string error)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            error = "Select an installation folder.";
+            return false;
+        }
+
+        if (!Path.IsPathRooted(path))
+        {
+            error = "Installation folder must be an absolute path.";
+            return false;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(path);
+            error = string.Empty;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = $"Cannot use selected folder: {ex.Message}";
+            return false;
+        }
+    }
+
+    private void InitializeInstallLocation()
+    {
+        var saved = appSettingsService.LoadLastInstallDirectory();
+        if (!string.IsNullOrWhiteSpace(saved) && ValidateInstallDirectory(saved, out _))
+        {
+            InstallLocation = saved;
+            return;
+        }
+
+        InstallLocation = DefaultInstallLocation;
+    }
+
+    private void ResetInstallDirectory()
+    {
+        InstallLocation = DefaultInstallLocation;
+        InstallLocationError = string.Empty;
+        Validate();
     }
 
     private void RaiseCommands()
@@ -347,9 +570,39 @@ public sealed class MainWindowViewModel : ViewModelBase
             pickIconCommand.RaiseCanExecuteChanged();
         }
 
+        if (PickInstallDirectoryCommand is AsyncCommand pickInstallDirectoryCommand)
+        {
+            pickInstallDirectoryCommand.RaiseCanExecuteChanged();
+        }
+
         if (InstallCommand is AsyncCommand installCommand)
         {
             installCommand.RaiseCanExecuteChanged();
+        }
+
+        if (ResetInstallDirectoryCommand is RelayCommand resetInstallDirectoryCommand)
+        {
+            resetInstallDirectoryCommand.RaiseCanExecuteChanged();
+        }
+
+        if (AddCustomFieldCommand is RelayCommand addCustomFieldCommand)
+        {
+            addCustomFieldCommand.RaiseCanExecuteChanged();
+        }
+
+        if (RemoveCustomFieldCommand is RelayCommand removeCustomFieldCommand)
+        {
+            removeCustomFieldCommand.RaiseCanExecuteChanged();
+        }
+
+        if (OpenAdvancedSettingsModalCommand is RelayCommand openAdvancedSettingsModalCommand)
+        {
+            openAdvancedSettingsModalCommand.RaiseCanExecuteChanged();
+        }
+
+        if (CloseAdvancedSettingsModalCommand is RelayCommand closeAdvancedSettingsModalCommand)
+        {
+            closeAdvancedSettingsModalCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -396,5 +649,16 @@ public sealed class MainWindowViewModel : ViewModelBase
     private void CloseResultModal()
     {
         IsResultModalVisible = false;
+    }
+
+    private void OpenAdvancedSettingsModal()
+    {
+        IsAdvancedSettingsModalVisible = true;
+    }
+
+    private void CloseAdvancedSettingsModal()
+    {
+        IsAdvancedSettingsModalVisible = false;
+        CustomFieldError = string.Empty;
     }
 }

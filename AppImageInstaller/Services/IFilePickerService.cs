@@ -4,4 +4,5 @@ public interface IFilePickerService
 {
     Task<string?> PickAppImageAsync(CancellationToken cancellationToken = default);
     Task<string?> PickIconAsync(CancellationToken cancellationToken = default);
+    Task<string?> PickInstallDirectoryAsync(string? startLocation = null, CancellationToken cancellationToken = default);
 }

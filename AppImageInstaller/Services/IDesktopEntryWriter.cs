@@ -1,3 +1,5 @@
+using AppImageInstaller.Models;
+
 namespace AppImageInstaller.Services;
 
 public interface IDesktopEntryWriter
@@ -8,5 +10,6 @@ public interface IDesktopEntryWriter
         string execPath,
         string iconPath,
         string category,
+        IReadOnlyList<DesktopCustomField> customFields,
         CancellationToken cancellationToken = default);
 }
