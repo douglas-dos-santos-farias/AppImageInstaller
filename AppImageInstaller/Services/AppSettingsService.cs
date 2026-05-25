@@ -18,21 +18,14 @@ public sealed class AppSettingsService : IAppSettingsService
 
     public string? LoadLastInstallDirectory()
     {
-        if (!File.Exists(settingsPath))
-        {
-            return null;
-        }
+        var data = LoadSettings();
+        return string.IsNullOrWhiteSpace(data?.LastInstallDirectory) ? null : data.LastInstallDirectory;
+    }
 
-        try
-        {
-            var json = File.ReadAllText(settingsPath);
-            var data = JsonSerializer.Deserialize<AppSettingsData>(json);
-            return string.IsNullOrWhiteSpace(data?.LastInstallDirectory) ? null : data.LastInstallDirectory;
-        }
-        catch
-        {
-            return null;
-        }
+    public string? LoadThemeKey()
+    {
+        var data = LoadSettings();
+        return string.IsNullOrWhiteSpace(data?.ThemeKey) ? null : data.ThemeKey;
     }
 
     public async Task SaveLastInstallDirectoryAsync(string path, CancellationToken cancellationToken = default)
@@ -42,10 +35,46 @@ public sealed class AppSettingsService : IAppSettingsService
             return;
         }
 
+        var data = LoadSettings() ?? new AppSettingsData();
+        data.LastInstallDirectory = path;
+        await SaveSettingsAsync(data, cancellationToken);
+    }
+
+    public async Task SaveThemeKeyAsync(string themeKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(themeKey))
+        {
+            return;
+        }
+
+        var data = LoadSettings() ?? new AppSettingsData();
+        data.ThemeKey = themeKey;
+        await SaveSettingsAsync(data, cancellationToken);
+    }
+
+    private AppSettingsData? LoadSettings()
+    {
+        if (!File.Exists(settingsPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(settingsPath);
+            return JsonSerializer.Deserialize<AppSettingsData>(json);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task SaveSettingsAsync(AppSettingsData data, CancellationToken cancellationToken)
+    {
         var directory = Path.GetDirectoryName(settingsPath)!;
         Directory.CreateDirectory(directory);
 
-        var data = new AppSettingsData { LastInstallDirectory = path };
         var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
         await File.WriteAllTextAsync(settingsPath, json, cancellationToken);
     }
@@ -53,5 +82,6 @@ public sealed class AppSettingsService : IAppSettingsService
     private sealed class AppSettingsData
     {
         public string? LastInstallDirectory { get; set; }
+        public string? ThemeKey { get; set; }
     }
 }

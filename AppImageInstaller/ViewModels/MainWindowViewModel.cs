@@ -65,6 +65,7 @@ public sealed class MainWindowViewModel : ViewModelBase
         CustomFields = new ObservableCollection<DesktopCustomFieldInput>();
 
         InitializeInstallLocation();
+        InitializeTheme();
 
         PickAppImageCommand = new AsyncCommand(PickAppImageAsync, () => !IsInstalling);
         PickIconCommand = new AsyncCommand(PickIconAsync, () => !IsInstalling);
@@ -606,6 +607,15 @@ public sealed class MainWindowViewModel : ViewModelBase
         InstallLocation = DefaultInstallLocation;
     }
 
+    private void InitializeTheme()
+    {
+        var savedTheme = appSettingsService.LoadThemeKey();
+        if (savedTheme is "Light" or "Dark")
+        {
+            selectedThemeKey = savedTheme;
+        }
+    }
+
     private void ResetInstallDirectory()
     {
         InstallLocation = DefaultInstallLocation;
@@ -684,6 +694,7 @@ public sealed class MainWindowViewModel : ViewModelBase
 
         selectedThemeKey = themeKey;
         applyTheme(themeKey);
+        _ = appSettingsService.SaveThemeKeyAsync(themeKey);
         RaisePropertyChanged(nameof(ThemeGlyph));
         RaisePropertyChanged(nameof(ThemeLabel));
     }
