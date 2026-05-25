@@ -3,7 +3,12 @@
              x:Class="AppImageInstaller.App"
              RequestedThemeVariant="Default">
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#0F6CBD" />
+                <ColorPaletteResources x:Key="Dark" Accent="#63AEFF" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
 
         <Style Selector="Window">
             <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}" />
@@ -100,6 +105,17 @@
         <Style Selector="TextBox">
             <Setter Property="CornerRadius" Value="16" />
             <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrushHover}" />
+        </Style>
+
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
         </Style>
 
         <Style Selector="ComboBox">
@@ -120,6 +136,18 @@
         <Style Selector="ComboBoxItem /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
         </Style>
+
+        <Style Selector="TabItem">
+            <Setter Property="Foreground" Value="{DynamicResource AppForegroundBrush}" />
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundHoverBrush}" />
+        </Style>
+
+        <Style Selector="TabItem:selected" />
 
         <Style Selector="ListBox">
             <Setter Property="Background" Value="{DynamicResource ListBackgroundBrush}" />
